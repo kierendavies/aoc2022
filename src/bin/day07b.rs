@@ -1,6 +1,7 @@
 use std::collections::HashMap;
+use std::io;
+use std::iter;
 use std::iter::Peekable;
-use std::{io, iter};
 
 const USAGE_TARGET: usize = 70_000_000 - 30_000_000;
 
