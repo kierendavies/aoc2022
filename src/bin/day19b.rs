@@ -162,7 +162,7 @@ impl Default for State {
 
 #[derive(Debug)]
 struct Blueprint {
-    id: u32,
+    _id: u32,
     robot_costs: ResourceMap<ResourceMap<u32>>,
 }
 
@@ -184,7 +184,7 @@ impl FromStr for Blueprint {
         let m = RE.captures(s).ok_or(Error::MatchError)?;
 
         Ok(Blueprint {
-            id: m["id"].parse()?,
+            _id: m["id"].parse()?,
             robot_costs: ResourceMap {
                 ore: ResourceMap {
                     ore: m["ore_ore"].parse()?,
@@ -216,7 +216,7 @@ impl Blueprint {
         let mut states: Vec<HashSet<State>> = vec![HashSet::new(); TIME_LIMIT + 1];
         states[0].insert(State::default());
 
-        for t in 1..=TIME_LIMIT {
+        for t in 1..TIME_LIMIT {
             let (states_l, states_r) = states.split_at_mut(t);
             for &state in &states_l[t - 1] {
                 'robot: for &robot in RESOURCES {
@@ -243,19 +243,18 @@ impl Blueprint {
                 }
             }
 
-            println!("{}", states[t - 1].capacity());
             states[t - 1].clear();
             states[t - 1].shrink_to_fit();
-            println!("{}", states[t - 1].capacity());
-            // states[t - 1] = HashSet::new();
-
-            let lens: Vec<_> = states.iter().map(HashSet::len).collect();
-            println!("{t} {lens:?}");
         }
 
-        states
-            .last()
-            .unwrap()
+        let (states_l, states_r) = states.split_at_mut(TIME_LIMIT);
+        for &state in &states_l[TIME_LIMIT - 1] {
+            let mut next_state = state;
+            next_state.resources += state.robots;
+            states_r[0].insert(next_state);
+        }
+
+        states[TIME_LIMIT]
             .iter()
             .map(|s| s.resources.geode)
             .max()
